@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Upload a Video</title>
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    </head>
+    <body>
+
+        <div>
+            <h3> Upload a Video Dashboard</h3>
+
+            <div>
+                Course Name:
+                <input type="text" id="course_name">
+                <br>
+                Title
+                <input type="text" id="title">
+                <br>
+                Description
+                <textarea id="description"></textarea>
+                <br>
+                Keywords
+                <input type="text" id="keywords">
+                <br>
+<!--                Category-->
+<!--                <input type="number" id="category">-->
+
+<!--                Visibility-->
+<!--                <input type="text" id="visibility">-->
+
+                Select a file
+                <input type="file" id="video_file">
+                <br>
+
+                <button id="upload_video"> Upload Video</button>
+            </div>
+        </div>
+
+    </body>
+
+    <script>
+        $(document).on("click", "#upload_video", function (event) {
+            var form_data = new FormData();
+            form_data.append("course", $('#course_name').val());
+            form_data.append("title", $('#title').val());
+            form_data.append("description", $('#description').val());
+            form_data.append("keywords", $('#keywords').val());
+            //form_data.append("category", $('#category').val());
+           // form_data.append("visibility", $('#visibility').val());
+            form_data.append("video_file", document.getElementById('video_file').files[0]);
+            $.ajax({
+                url: '/video_upload' , // point to server-side URL
+                cache: false,
+                contentType: false,
+                processData: false,
+                data:form_data,
+                type: 'POST',
+                success: function (data) {
+                    alert(data['message']);
+                },
+                error: function (data){
+                    alert('Something went wrong.');
+                },
+            });
+       });
+    </script>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <!-- Image and text -->
+        <nav class="navbar navbar-light bg-light">
+            <img src="{{session.profile_url}}" width="30" height="30" class="d-inline-block align-top" alt="">
+            {{session.user_name}}
+        <a href="/logout">Logout</a>
+        </nav>
+    </body>
+</html>
