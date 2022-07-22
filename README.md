@@ -18,4 +18,4 @@
     }
 
 
-5. Run `app.py` file using `python app.py` command.
+5. Run `run.py` file using `python run.py` command.
