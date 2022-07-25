@@ -3,47 +3,56 @@
     <head>
         <meta charset="UTF-8">
         <title>Upload a Video</title>
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js"
-    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     </head>
     <body>
-
-        <div>
-            <h3> Upload a Video Dashboard</h3>
-
-            <div>
-                Course Name:
-                <input type="text" id="course_name">
-                <br>
-                Title
-                <input type="text" id="title">
-                <br>
-                Description
-                <textarea id="description"></textarea>
-                <br>
-                Keywords
-                <input type="text" id="keywords">
-                <br>
-<!--                Category-->
-<!--                <input type="number" id="category">-->
-
-<!--                Visibility-->
-<!--                <input type="text" id="visibility">-->
-
-                Select a file
-                <input type="file" id="video_file">
-                <br>
-
-                <button id="upload_video"> Upload Video</button>
-            </div>
+        {% include '/header.html' %}
+        <h3>Upload video dashboard</h3>
+        <div class="mb-3 mt-3">
+            <label for="course" class="form-label">Course Name:</label>
+            <select id="course">
+                <option>Select Course</option>
+                {% for course in course_list%}
+                    <option value="{{course.id}}">{{course.title}}</option>
+                {% endfor %}
+            </select>
         </div>
+        <div class="mb-3">
+            <label for="title" class="form-label">Title:</label>
+            <input type="text" class="form-control" id="title" placeholder="What is Blockchain?" name="title">
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description:</label>
+            <textarea id="description" name="description" placeholder="Blockchain is a new world."></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="Keywords" class="form-label">Keywords:</label>
+            <input type="text" id="keywords" name="keywords" placeholder="Blockchain, Solidity, Ethereum">
+        </div>
+        <div class="mb-3">
+            <label for="file" class="form-label">Select a file:</label>
+            <input type="file" id="video_file" name="video_file">
+        </div>
+
+        <button id="video_upload" class="btn btn-primary">Upload</button>
+
+<!--&lt;!&ndash;                Category&ndash;&gt;-->
+<!--&lt;!&ndash;                <input type="number" id="category">&ndash;&gt;-->
+
+<!--&lt;!&ndash;                Visibility&ndash;&gt;-->
+<!--&lt;!&ndash;                <input type="text" id="visibility">&ndash;&gt;-->
+
+<!--                <br>-->
+
+<!--                <button id="upload_video"> Upload Video</button>-->
+<!--            </div>-->
+<!--        </div>-->
 
     </body>
 
     <script>
-        $(document).on("click", "#upload_video", function (event) {
+        $(document).on("click", "#video_upload", function (event) {
             var form_data = new FormData();
-            form_data.append("course", $('#course_name').val());
+            form_data.append("course", $('#course').val());
             form_data.append("title", $('#title').val());
             form_data.append("description", $('#description').val());
             form_data.append("keywords", $('#keywords').val());

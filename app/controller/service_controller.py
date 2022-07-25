@@ -14,8 +14,16 @@ from app.models.query_builder import (
     insert_user,
     fetch_course,
     check_access,
-    insert_video
+    insert_video,
+    access_type,
+    fetch_courses,
+    fetch_users,
+    insert_course,
+    update_course,
+    delete_course,
+    course_video
 )
+from werkzeug.datastructures import ImmutableMultiDict
 
 from app.youtube_api import (
     youtube_video_upload
@@ -39,9 +47,9 @@ from flask import jsonify
 @api.route('/')
 def home():
     if session.get('google_oauth_token') or session.get('user_id'):
-        course_detail = fetch_course('Blockchain')
-        print(course_detail)
-        return render_template('dashboard.html', course_detail=course_detail)
+        courses = fetch_courses()
+        print(courses)
+        return render_template('dashboard.html', courses=courses, access_list=access_type(session.get('user_id')))
     else:
         session.clear()
     return redirect('/login')
@@ -77,6 +85,7 @@ def google_callback():
     resp = google.get("oauth2/v2/userinfo")
     if resp.ok:
         resp = resp.json()
+        print(resp)
         if resp.get('hd') == 'rapidinnovation.dev':
             session['profile_url'] = resp['picture']
             session['user_id'] = resp['id']
@@ -96,14 +105,24 @@ def google_callback():
     return redirect('/')
 
 
+@app.route('/course/<course_id>', methods=['GET'])
+def course_dashboard(course_id):
+    if session.get('user_id'):
+        if not check_access(session.get('user_id'), 'admin'):
+            return redirect('/')
+        else:
+            return render_template('course.html', videos=course_video(course_id), access_list=access_type(session.get('user_id')))
+    else:
+        return redirect('/')
+
 @app.route('/video_upload', methods=['GET', 'POST'])
 def video_upload():
-    if session.get('google_oauth_token'):
-        if not check_access(session['user_id'], 'staff'):
+    if session.get('user_id'):
+        if not check_access(session.get('user_id'), 'staff'):
             return redirect('/')
         else:
             if request.method == 'GET':
-                return render_template('upload_video.html')
+                return render_template('upload_video.html', access_list=access_type(session.get('user_id')), course_list=[{"id": i['_id'], "title": i['title']} for i in fetch_courses()])
             elif request.method == 'POST':
                 response_data = {
                     'status': 404,
@@ -115,7 +134,6 @@ def video_upload():
                         'message': 'Field is missing.'
                     }
                 else:
-
                     files = request.files.getlist('video_file')
                     if not os.path.exists('static/video'):
                         os.mkdir('static/video')
@@ -143,18 +161,68 @@ def video_upload():
                         'description': request.form['description'],
                         'keywords': request.form['keywords'],
                         'video_id': video_id
-
                     }
                     insert_video(request.form['course'], video_info)
                     if video_id != 'Error':
                         os.remove(f'static/video/{file_name}')
                         response_data['status'] = 200
-                        response_data['message'] = 'ok'
+                        response_data['message'] = video_id
                         response_data['video_id'] = video_id
                 return jsonify(response_data)
-
     else:
         return redirect('/login')
+
+
+@app.route('/manage/<manage_type>', methods=['GET', 'POST'])
+@app.route('/manage/<manage_type>/<object_id>', methods=['PUT', 'DELETE'])
+def manage(manage_type, object_id=None):
+    response_data = None
+    if not check_access(session.get('user_id'), 'admin'):
+        response_data = redirect('/')
+    else:
+        response_json = {
+            'status': 404,
+            'message': 'Something went wrong.'
+        }
+        if request.method == 'GET':
+            if manage_type.lower() == 'course':
+                data_list = fetch_courses()
+                response_data = render_template('manage.html', manage_type=manage_type, data_list=data_list,
+                                                access_list=access_type(session.get('user_id')))
+            elif manage_type.lower() == 'user':
+                data_list = fetch_users()
+                response_data = render_template('manage.html', manage_type=manage_type, data_list=data_list,
+                                                access_list=access_type(session.get('user_id')))
+            else:
+                response_data = redirect('/')
+        elif request.method == 'POST':
+            if manage_type.lower() == 'course':
+                course_detail = request.form.to_dict(flat=True)
+                course_detail['id'] = insert_course(course_detail)
+                if course_detail.get('_id'):
+                    del course_detail['_id']
+                response_json = {
+                    'status': 200,
+                    'message': 'ok',
+                    'course_detail': course_detail
+                }
+            response_data = jsonify(response_json)
+        elif request.method == 'PUT':
+            course_detail = request.form.to_dict(flat=True)
+            update_course(object_id, course_detail)
+            response_json = {
+                'status': 200,
+                'message': 'ok',
+            }
+            response_data = jsonify(response_json)
+        elif request.method == 'DELETE':
+            delete_course(object_id)
+            response_json = {
+                'status': 200,
+                'message': 'ok',
+            }
+            response_data = jsonify(response_json)
+    return response_data
 
 
 @app.route('/logout')
