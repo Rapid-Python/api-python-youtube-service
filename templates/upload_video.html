@@ -24,10 +24,10 @@
             <label for="description" class="form-label">Description:</label>
             <textarea id="description" name="description" placeholder="Blockchain is a new world."></textarea>
         </div>
-        <div class="mb-3">
-            <label for="Keywords" class="form-label">Keywords:</label>
-            <input type="text" id="keywords" name="keywords" placeholder="Blockchain, Solidity, Ethereum">
-        </div>
+<!--        <div class="mb-3">-->
+<!--            <label for="Keywords" class="form-label">Keywords:</label>-->
+<!--            <input type="text" id="keywords" name="keywords" placeholder="Blockchain, Solidity, Ethereum">-->
+<!--        </div>-->
         <div class="mb-3">
             <label for="file" class="form-label">Select a file:</label>
             <input type="file" id="video_file" name="video_file">
@@ -55,7 +55,7 @@
             form_data.append("course", $('#course').val());
             form_data.append("title", $('#title').val());
             form_data.append("description", $('#description').val());
-            form_data.append("keywords", $('#keywords').val());
+        //    form_data.append("keywords", $('#keywords').val());
             //form_data.append("category", $('#category').val());
            // form_data.append("visibility", $('#visibility').val());
             form_data.append("video_file", document.getElementById('video_file').files[0]);
@@ -68,6 +68,7 @@
                 type: 'POST',
                 success: function (data) {
                     alert(data['message']);
+
                 },
                 error: function (data){
                     alert('Something went wrong.');

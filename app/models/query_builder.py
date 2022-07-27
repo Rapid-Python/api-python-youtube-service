@@ -1,10 +1,40 @@
+import os
+
 import pymongo
 from datetime import datetime
 from bson.objectid import ObjectId
 
-url = "mongodb://localhost:27017"
+url = os.getenv('mongodb_endpoint')
 
 client = pymongo.MongoClient(url)
+
+
+def user_active(user_id):
+    db = client['user']
+    info = db['user_info']
+    return info.find_one(
+        {
+            'user_id': user_id,
+            'active': True
+        }
+    )
+
+
+def fetch_active_courses(sort=-1, field='_id'):
+    db = client['courses']
+    info = db['course']
+    return list(info.find({'active': True}).sort(field, sort))
+
+
+def fetch_user(user_id):
+    db = client['user']
+    info = db['user_info']
+    return info.find_one(
+        {
+            'user_id': user_id,
+            'active': True
+        }
+    )
 
 
 def user_exists(user_id):
@@ -26,47 +56,16 @@ def insert_user(data):
         )
 
 
-def fetch_course(course_name=None):
-    db = client['course']
-    info = db[course_name]
-    return list(info.find({}, {'_id': 0}))
-
-
-def check_access(id, access):
-    db = client['user']
-    info = db['user_info']
-    return info.find_one({'user_id': id, 'access_type': access})
-
-
-def insert_video(course_id, data):
-    db = client['courses']
-    info = db['course_detail']
-    data['course_id'] = course_id
-    data['createAt'] = datetime.now()
-    info.insert_one(data)
-
-
-def access_type(user_id):
-    db = client['user']
-    info = db['user_info']
-    return info.find_one({'user_id': user_id}, {'_id': 0, 'access_type': 1})
-
-
-def fetch_courses():
+def fetch_courses(sort=-1, filter='_id'):
     db = client['courses']
     info = db['course']
-    return list(info.find({}))
-
-
-def fetch_users():
-    db = client['user']
-    info = db['user_info']
-    return list(info.find({}))
+    return list(info.find({}).sort(filter, sort))
 
 
 def insert_course(course_detail):
     db = client['courses']
     info = db['course']
+    course_detail['active'] = False
     course_id = str(info.insert_one(course_detail).inserted_id)
     return course_id
 
@@ -84,13 +83,79 @@ def update_course(object_id, course_detail):
     )
 
 
+def fetch_course(course_id=None):
+    db = client['courses']
+    info = db['course']
+    return info.find_one({'_id': ObjectId(course_id)})
+
+
 def delete_course(object_id):
     db = client['courses']
     info = db['course']
     info.delete_one({'_id': ObjectId(object_id)})
 
 
+def check_access(user_id, access):
+    db = client['user']
+    info = db['user_info']
+    return info.find_one({'user_id': user_id, 'access_type': access})
+
+
+def course_video_user(course_id):
+    db = client['courses']
+    info = db['course_detail']
+    return list(info.find({'course_id': course_id, 'active': True}))
+
+
 def course_video(course_id):
     db = client['courses']
     info = db['course_detail']
     return list(info.find({'course_id': course_id}))
+
+
+def video_info(video_id):
+    db = client['courses']
+    info = db['course_detail']
+    return info.find_one({'_id': ObjectId(video_id)})
+##############################
+
+
+
+
+
+
+
+
+
+
+
+def insert_video(course_id, data):
+    db = client['courses']
+    info = db['course_detail']
+    data['course_id'] = course_id
+    data['createAt'] = datetime.now()
+    info.insert_one(data)
+
+
+def access_type(user_id):
+    db = client['user']
+    info = db['user_info']
+    return info.find_one({'user_id': user_id}, {'_id': 0, 'access_type': 1})
+
+
+
+
+
+def fetch_users():
+    db = client['user']
+    info = db['user_info']
+    return list(info.find({}))
+
+
+
+
+
+
+
+
+

@@ -11,12 +11,20 @@
     <body>
         <!-- Image and text -->
         <nav class="navbar navbar-light bg-light">
-            <img src="{{session.profile_url}}" width="30" height="30" class="d-inline-block align-top" alt="">
-                {{session.user_name}}
-            {% if 'admin' in access_list.access_type %}
-                <a>Manage Course</a>
+            <img src="{{user_info.profile_url}}" width="30" height="30" class="d-inline-block align-top" alt="">
+                {{user_info.name}}
+            {% if 'admin' in user_info.access_type %}
+                <div class="dropdown">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                        Manage
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/manage/user">Manage User</a></li>
+                        <li><a class="dropdown-item" href="/manage/course">Manage Course</a></li>
+                    </ul>
+                </div>
             {% endif %}
-            {% if 'staff' in access_list.access_type %}
+            {% if 'staff' in user_info.access_type %}
                 <a href="/video_upload">Upload Video</a>
             {% endif %}
             <a href="/logout">Logout</a>

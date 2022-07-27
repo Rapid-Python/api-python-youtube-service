@@ -11,21 +11,14 @@
             <h4>{{manage_type|capitalize}}</h4>
             <table class="table">
                 <thead>
-                    {% if manage_type == 'user' %}
+                    {% if manage_type == 'Course Detail' %}
                         <tr>
                             <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Access Right</th>
-                        </tr>
-                    {% elif manage_type == 'course' %}
-                        <tr>
-                            <th>ID</th>
-                            <th>Course Name</th>
+                            <th>Title</th>
                             <th>Description</th>
+                            <th>Video Path</th>
                             <th>Active</th>
-                            <th>Icon url</th>
-                            <th colspan="2">Action</th>
+                            <th>Course ID</th>
                         </tr>
                     {% endif %}
                 </thead>
@@ -36,22 +29,14 @@
                         </tr>
                     {% else %}
                         {% for data in data_list %}
-                            {% if manage_type == 'user' %}
+                            {% if manage_type == 'Course Detail' %}
                                 <tr>
-                                    <td>{{data.user_id}}</td>
-                                    <td>{{data.name}}</td>
-                                    <td>{{data.email}}</td>
-                                    <td>{{data.access_type}}</td>
-                                </tr>
-                            {% elif manage_type == 'course' %}
-                                <tr id="tr_{{data._id}}">
-                                    <td><a href="/manage/course/{{data._id}}">{{data._id}}</a></td>
+                                    <td>{{data._id}}</td>
                                     <td>{{data.title}}</td>
                                     <td>{{data.description}}</td>
+                                    <td>{{data.video_path}}</td>
                                     <td>{{data.active}}</td>
-                                    <td title="{{data.url}}" style="white-space:nowrap;">{{data.url|truncate(20, True, '...')}}</td>
-                                    <td><a class="edit_course" style="cursor: pointer;"data-id="{{loop.index}}" data-active="{{data.active}}" data-course_id="{{data._id}}" data-title="{{data.title}}" data-description="{{data.description}}" data-url="{{data.url}}"><i class="fas fa-pen"></i></a></td>
-                                    <td><a class="delete_course" style="cursor: pointer; color:red;" data-id="{{loop.index}}" data-course_id="{{data._id}}"><i class="fas fa-trash"></i></a></td>
+                                    <td>{{data.course_id}}</td>
                                 </tr>
                             {% endif %}
                         {% endfor %}

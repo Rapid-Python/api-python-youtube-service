@@ -5,7 +5,8 @@ from flask import (
     redirect,
     request,
     render_template,
-    url_for
+    url_for,
+    jsonify
 )
 import os
 
