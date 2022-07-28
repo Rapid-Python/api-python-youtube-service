@@ -17,6 +17,13 @@ class Video:
             file_mime_type, _ = mimetypes.guess_type(file_name)
             self.provider_client.upload_file(file_path, os.getenv('aws_bucket'), file_name, ExtraArgs={'ContentType': file_mime_type})
 
+    def generate_pre_signed_url(self, file_name):
+        return self.provider_client.generate_presigned_post(
+            Bucket=os.getenv('aws_bucket'),
+            Key=file_name,
+            ExpiresIn=100
+        )
+
     def generate_url(self, file_name):
         return self.provider_client.generate_presigned_url('get_object',
                                                            Params={'Bucket': os.getenv('aws_bucket'), 'Key': file_name},

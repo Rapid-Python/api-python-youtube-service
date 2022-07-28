@@ -137,15 +137,6 @@ def insert_video(course_id, data):
     info.insert_one(data)
 
 
-def access_type(user_id):
-    db = client['user']
-    info = db['user_info']
-    return info.find_one({'user_id': user_id}, {'_id': 0, 'access_type': 1})
-
-
-
-
-
 def fetch_users():
     db = client['user']
     info = db['user_info']

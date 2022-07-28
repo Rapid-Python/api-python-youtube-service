@@ -14,7 +14,6 @@ from app.models.query_builder import (
     fetch_course,
     check_access,
     insert_video,
-    access_type,
     fetch_courses,
     fetch_users,
     insert_course,
@@ -27,10 +26,11 @@ from app.models.query_builder import (
     fetch_active_courses,
     video_info
 )
-from werkzeug.datastructures import ImmutableMultiDict
+
 from app.youtube_api import (
     youtube_video_upload
 )
+
 from flask_dance.contrib.google import make_google_blueprint, google
 from app.upload_video import Video
 
@@ -136,7 +136,7 @@ def admin_dashboard(manage_type='user', object_id=None):
                 response_data = jsonify(response_json)
         elif request.method == 'PUT':
             course_detail = request.form.to_dict(flat=True)
-            course_detail['active'] = bool(course_detail['active'])
+            course_detail['active'] = True if course_detail['active'].capitalize() == 'True' else False
             update_course(object_id, course_detail)
             response_json = {
                 'status': 200,
@@ -242,3 +242,27 @@ def get_video_url(course_id=None, video_id=None):
                 }
                 response_data = response_json
     return response_data
+
+
+@app.route('/video_upload', methods=['POST'])
+def get_signed_url():
+    response_data = {
+        'status': 404,
+        'message': 'Something went wrong.'
+    }
+    if not session.get('user_id') or not user_active(session.get('user_id')) or not check_access(session.get('user_id'), 'staff'):
+        response_data['message'] = 'unauthorized user.'
+    else:
+        v = Video()
+        response_data['presigned_object'] = v.generate_pre_signed_url(f'{fetch_course(request.form["course"])["title"].replace("/", "").lower()}/{request.form["title"].replace("/", "")}.{request.form["file_name"].split(".")[-1]}')
+        video_info = {
+            'title': request.form['title'],
+            'description': request.form['description'],
+            #  'keywords': request.form['keywords'],
+            'video_path': f'{fetch_course(request.form["course"])["title"].replace("/", "").lower()}/{request.form["title"].replace("/", "")}.{request.form["file_name"].split(".")[-1]}',
+            'active': True
+        }
+        insert_video(request.form['course'], video_info)
+        response_data['status'] = 200
+        response_data['message'] = 'ok'
+        return jsonify(response_data)
