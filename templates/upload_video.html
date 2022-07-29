@@ -4,37 +4,40 @@
         <meta charset="UTF-8">
         <title>Upload a Video</title>
     </head>
-    <body>
+    <body style="margin: 0 10px;">
         {% include '/header.html' %}
         <h3>Upload video dashboard</h3>
-        <div class="mb-3 mt-3">
-            <label for="course" class="form-label">Course Name:</label>
-            <select id="course">
-                <option>Select Course</option>
-                {% for course in course_list%}
-                    <option value="{{course.id}}">{{course.title}}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="title" class="form-label">Title:</label>
-            <input type="text" class="form-control" id="title" placeholder="What is Blockchain?" name="title">
-        </div>
-        <div class="mb-3">
-            <label for="description" class="form-label">Description:</label>
-            <textarea id="description" name="description" placeholder="Blockchain is a new world."></textarea>
-        </div>
-<!--        <div class="mb-3">-->
-<!--            <label for="Keywords" class="form-label">Keywords:</label>-->
-<!--            <input type="text" id="keywords" name="keywords" placeholder="Blockchain, Solidity, Ethereum">-->
-<!--        </div>-->
-        <div class="mb-3">
-            <label for="file" class="form-label">Select a file:</label>
-            <input type="file" id="file" name="file">
-        </div>
+        <form onsubmit="false">
+            <div class="mb-3 mt-3">
+                <label for="course" class="form-label">Course Name:</label>
+                </br>
+                <select id="course">
+                    <option>Select Course</option>
+                    {% for course in course_list %}
+                        <option value="{{course.id}}">{{course.title}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="title" class="form-label">Title:</label>
+                <input type="text" class="form-control" id="title" placeholder="What is Blockchain?" name="title" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description:</label>
+                </br>
+                <textarea id="description" name="description" placeholder="Blockchain is a new world." required></textarea>
+            </div>
+    <!--        <div class="mb-3">-->
+    <!--            <label for="Keywords" class="form-label">Keywords:</label>-->
+    <!--            <input type="text" id="keywords" name="keywords" placeholder="Blockchain, Solidity, Ethereum">-->
+    <!--        </div>-->
+            <div class="mb-3">
+                <label for="file" class="form-label">Select a file:</label>
+                <input type="file" id="file" name="file" required>
+            </div>
 
-        <button id="video_upload" class="btn btn-primary">Upload</button>
-
+            <input type="button" id="video_upload" value="Upload" class="btn btn-primary">
+        </form>
 <!--&lt;!&ndash;                Category&ndash;&gt;-->
 <!--&lt;!&ndash;                <input type="number" id="category">&ndash;&gt;-->
 
@@ -51,6 +54,10 @@
 
     <script>
         $(document).on("click", "#video_upload", function (event) {
+            if($('#course').val() == 'Select Course' || $('#title').val() == '' || $('#description').val() == '' || document.getElementById('file').files.length == 0){
+                alert('Please fill out all fields');
+                return false;
+            }
             var form_data = new FormData();
             form_data.append("course", $('#course').val());
             form_data.append("title", $('#title').val());
@@ -91,6 +98,7 @@
                             success: function (data) {
                                 console.table(data);
                                 console.log(data);
+                                alert('ok');
                             },
                             error: function (data){
                                 alert('Something went wrong.');

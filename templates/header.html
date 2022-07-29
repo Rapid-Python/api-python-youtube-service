@@ -9,25 +9,30 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     </head>
     <body>
-        <!-- Image and text -->
-        <nav class="navbar navbar-light bg-light">
-            <img src="{{user_info.profile_url}}" width="30" height="30" class="d-inline-block align-top" alt="">
-                {{user_info.name}}
-            {% if 'admin' in user_info.access_type %}
-                <div class="dropdown">
-                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-                        Manage
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="/manage/user">Manage User</a></li>
-                        <li><a class="dropdown-item" href="/manage/course">Manage Course</a></li>
+        <header class="p-3 mb-3 border-bottom">
+            <div class="container">
+                <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+                    <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                        <li><a href="/" class="nav-link px-2 link-secondary">Home</a></li>
+                        {% if 'admin' in user_info.access_type %}
+                            <li><a href="/manage/user" class="nav-link px-2 link-dark">Manage User</a></li>
+                            <li><a href="/manage/course" class="nav-link px-2 link-dark">Manage Course</a></li>
+                        {% endif %}
+                        {% if 'staff' in user_info.access_type  or 'admin' in user_info.access_type %}
+                            <li><a href="/video_upload" class="nav-link px-2 link-dark">Upload Video</a></li>
+                        {% endif %}
                     </ul>
+                    <div class="dropdown text-end">
+                        <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{{user_info.profile_url}}" alt="mdo" width="32" height="32" class="rounded-circle">
+                        </a>
+                        <ul class="dropdown-menu text-small">
+                            <li><a>{{user_info.name}}</a></li>
+                            <li><a class="dropdown-item" href="/logout">Sign out</a></li>
+                        </ul>
+                    </div>
                 </div>
-            {% endif %}
-            {% if 'staff' in user_info.access_type %}
-                <a href="/video_upload">Upload Video</a>
-            {% endif %}
-            <a href="/logout">Logout</a>
-        </nav>
+            </div>
+        </header>
     </body>
 </html>

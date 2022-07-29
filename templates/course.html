@@ -3,47 +3,119 @@
     <head>
         <meta charset="UTF-8">
         <title>Course</title>
+        <style>
+            .high_light {
+                background:lightblue;
+            }
+        </style>
     </head>
-    <body>
+    <body style="margin: 0 10px;">
         {% include '/header.html' %}
-        {% if videos|length == 0 %}
-            <h3>No video available</h3>
-        {% else %}
-            <div class="container mt-5">
-                <div class="row">
-                    <div class="col-md-8">
-                        <video width="500px" height="400px" id="iframe_div" controls autoplay>
-                            <source src="" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                    </div>
-                    <div class="col-md-4">
-                        {% for video in videos %}
-                            <h6 style="cursor: pointer;" class="change_frame_video" data-video_id="{{video._id}}">{{video.title}}</h6>
-                        {% endfor %}
-                    </div>
+
+        <h2 style="text-align:center;">{{course.title}}</h2>
+        <h5 style="text-align:center;">{{course.description}}</h5>
+
+        <div class="container mt-5">
+            <div class="row">
+                <div class="col-md-8" id="video_player">
+                    <div class="spinner-border"></div>
+                </div>
+                <div class="col-md-4" id="right_panel_side">
+                    <div class="spinner-border"></div>
                 </div>
             </div>
-        {% endif %}
+        </div>
     </body>
     <script>
-        $(document).on("click",".change_frame_video",function(event) {
+        function all_video(course_id){
             $.ajax({
-                url: `${window.location.pathname}/${$(this).data("video_id")}` , // point to server-side URL
+                url: `/course/video/${course_id}/` , // point to server-side URL
                 type: 'GET',
                 success: function (data) {
-                    var iframe_body = `
-                        <source src="${data['video_url']}" type="video/mp4">
-                                    Your browser does not support the video tag.`
-                    $('#iframe_div').empty().append(iframe_body);
-                    console.table(data);
-                    console.log(data['video_url']);
+                    console.log(data);
+                    if(data['status'] == 200){
+                        var body_div = ``
+                        if(data['items'].length == 0){
+                            var body_div = `<h3>No video available</h3>`
+                            $('#right_panel_side').empty().append(body_div);
+                            $('#video_player').empty().append(iframe_body);
+                        }
+                        else{
+                            for(var i=0; i<data['items'].length; i++){
+                                if(i==0){
+                                    body_div += `
+                                        <div class="video_playlist high_light" data-id="${data['items'][i]['_id']}" style="cursor:pointer;">`
+                                }
+                                else{
+                                    body_div += `
+                                        <div class="video_playlist" data-id="${data['items'][i]['_id']}" style="cursor:pointer;">`
+                                }
+                                body_div += `
+                                        <h5>${i+1}.  ${data['items'][i]['title']}</h5>
+                                        <p>${data['items'][i]['description']}</p>
+                                    </div>
+                                    </hr>
+                                `
+                                if (i==0){
+                                    $.ajax({
+                                        url: `${window.location.pathname}/${data['items'][i]['_id']}` , // point to server-side URL
+                                        type: 'GET',
+                                        success: function (data) {
+                                            var body_div = `
+                                                <video width="800px" height="500px" id="iframe_div" controls autoplay>
+                                                    <source src="${data['video_url']}" type="video/mp4">
+                                                            Your browser does not support the video tag.
+                                                </video>`
+                                            $('#video_player').empty().append(body_div);
+                                        },
+                                        error: function (data){
+                                            alert('Something went wrong.');
+                                            var body_div = `<h3>No video available</h3>`
+                                            $('#video_player').empty().append(body_div);
+                                        },
+                                    });
+                                }
+                            }
+                            $('#right_panel_side').empty().append(body_div);
+                        }
+                    }
+                    else{
+                        var body_div = `<h3>No video available</h3>`
+                        $('#right_panel_side').empty().append(body_div);
+                        $('#video_player').empty().append(iframe_body);
+                    }
+                },
+                error: function(data){
+                     console.log('something went wrong.');
+                     var body_div = `<h3>No video available</h3>`
+                     $('#right_panel_side').empty().append(body_div);
+                     $('#video_player').empty().append(iframe_body);
+                }
+            });
+        }
+        all_video('{{course._id}}');
+        $(document).on("click",".video_playlist",function(event) {
+            $('.video_playlist').not(this).removeClass('high_light');
+            $(this).addClass('high_light');
+            $.ajax({
+                url: `${window.location.pathname}/${$(this).data("id")}` , // point to server-side URL
+                type: 'GET',
+                success: function (data) {
+                    var body_div = `
+                        <video width="800px" height="500px" id="iframe_div" controls autoplay>
+                            <source src="${data['video_url']}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                        </video>`
+                    $('#video_player').empty().append(body_div);
                 },
                 error: function (data){
                     alert('Something went wrong.');
+                    var body_div = `<h3>No video available</h3>`
+                    $('#video_player').empty().append(body_div);
                 },
             });
 
         });
+        //
     </script>
 </html>

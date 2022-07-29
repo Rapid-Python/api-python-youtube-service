@@ -3,34 +3,181 @@
     <head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8">
         <title>Dashboard</title>
-        <link
-            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Quicksand:wght@400;600;700&display=swap"
-            rel="stylesheet">
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.minindex.css') }}">
     </head>
-    <body id="body">
+    <body style="margin: 0 10px;">
         {% include '/header.html' %}
-            <div class="container mt-3">
-                <h2>Courses</h2>
-                <br>
-                {% if courses|length == 0%}
-                    <h4>No course available</h4>
-                {% else %}
-                        <div class="row">
-                            {% for course in courses %}
-                                <div class="col-md-4">
-                                    <img class="card-img-top" src="{{course.url}}" alt="Card image" style="width:400px  ; height:300px;">
-                                    <div class="card-body">
-                                        <h4 class="card-title">{{course.title}}</h4>
-                                        <p class="card-text">{{course.description}}</p>
-                                        <a href="/course/{{course._id}}" class="btn btn-primary">View Course</a>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <br>
+        <select class="form-select" id="category" aria-label="Category">
+            <option selected>Please select a category</option>
+            <option value="AI-ML">AI-ML</option>
+            <option value="Backend">Backend</option>
+            <option value="Blockchain">Blockchain</option>
+            <option value="Business Analyst">Business Analyst</option>
+            <option value="C++">C++</option>
+            <option value="Cyber Security">Cyber Security</option>
+            <option value="Designer">Designer</option>
+            <option value="DevOps">DevOps</option>
+            <option value="Discovery">Discovery</option>
+            <option value="Finance">Finance</option>
+            <option value="Flask">Flask</option>
+            <option value="Frontend">Frontend</option>
+            <option value="HR">HR</option>
+            <option value="Marketing">Marketing</option>
+            <option value="PM">PM</option>
+            <option value="Project Management">Project Management</option>
+            <option value="Proposal Writing">Proposal Writing</option>
+            <option value="Python">Python</option>
+            <option value="QA">QA</option>
+            <option value="Quality Analyst">Quality Analyst</option>
+            <option value="Rust">Rust</option>
+            <option value="Technical Copywriter">Technical Copywriter</option>
+            <option value="Training">Training</option>
+            <option value="Training &amp; Development">Training &amp; Development</option>
+        </select>
+        <input type="search" id="search_course" class="form-control" placeholder="Search a course" aria-label="Search">
 
-                {% endif %}
+        <h2>Courses</h2>
+
+        <div class="album py-5 bg-light">
+            <div class="container">
+                <div class="row g-4 py-5 row-cols-1 row-cols-lg-3" id="course_div">
+                    <div class="spinner-border"></div>
+              </div>
             </div>
+        </div>
     </body>
+    <script>
+        function all_course(){
+            $.ajax({
+                    url: `/active_course`,
+                    type: 'GET',
+                    success: function (data) {
+                        console.log(data);
+                        if (data['status'] == 200) {
+                            var body_div = ``
+                            if(data['items'].length == 0){
+                                body_div += `<h4>No course available</h4>`
+                            }
+                            else{
+                                for (var i=0; i<data['items'].length; i++){
+                                    body_div += `
+                                        <div class="feature col">
+                                            <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
+                                                  <img class="bd-placeholder-img card-img-top" style="width:380px; height:300px;" src="${data['items'][i]['url']}" alt="Card image">
+                                            </div>
+                                            <h2>${data['items'][i]['title']}</h2>
+                                            <p>${data['items'][i]['description']}</p>
+                                            <a href="/course/${data['items'][i]['_id']}" class="icon-link d-inline-flex align-items-center">
+                                              View Course
+                                              <svg class="bi" width="1em" height="1em"><use xlink:href="#chevron-right"></use></svg>
+                                            </a>
+                                        </div>
+                                    `
+                                }
+                                body_div += ``
+                            }
+                            $(`#course_div`).empty().append(body_div);
+                        }
+                    },
+                    error: function (error){
+                        console.log('something went wrong.');
+                    }
+                });
+        }
+        $('#category').change(function () {
+            if ($(this).val() == 'Please select a category'){
+                all_course();
+                return false;
+            }
+            else{
+                var category_select = $(this).val();
+                $.ajax({
+                    url: `/category/${category_select}`,
+                    type: 'GET',
+                    success: function (data) {
+                        console.log(data);
+                        if (data['status'] == 200) {
+                            var body_div = ``
+                            if(data['items'].length == 0){
+                                body_div += `<h4>No course available</h4>`
+                            }
+                            else{
+                                for (var i=0; i<data['items'].length; i++){
+                                    body_div += `
+                                        <div class="feature col">
+                                            <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
+                                                  <img class="bd-placeholder-img card-img-top" style="width:380px; height:300px;" src="${data['items'][i]['url']}" alt="Card image">
+                                            </div>
+                                            <h2>${data['items'][i]['title']}</h2>
+                                            <p>${data['items'][i]['description']}</p>
+                                            <a href="/course/${data['items'][i]['_id']}" class="icon-link d-inline-flex align-items-center">
+                                              View Course
+                                              <svg class="bi" width="1em" height="1em"><use xlink:href="#chevron-right"></use></svg>
+                                            </a>
+                                        </div>
+                                    `
+                                }
+                            }
+                            $(`#course_div`).empty().append(body_div);
+                        }
+                    },
+                    error: function (error){
+                        console.log('something went wrong.');
+                    }
+                });
+            }
+        });
+        $('#search_course').on('keyup paste', function (event) {
+            var search_keyword = $(this).val();
+            if (search_keyword.length == 0){
+                all_course();
+                return false;
+            }
+            else{
+                $.ajax({
+                    url: `/search/${search_keyword}`,
+                    type: 'GET',
+                    success: function (data) {
+                        console.log(data);
+                        if (data['status'] == 200) {
+                            var body_div = ``
+                            if(data['items'].length == 0){
+                                body_div += `<h4>No course available</h4>`
+                            }
+                            else{
+                                for (var i=0; i<data['items'].length; i++){
+                                    body_div += `
+                                        <div class="feature col">
+                                            <div class="feature-icon d-inline-flex align-items-center justify-content-center text-bg-primary bg-gradient fs-2 mb-3">
+                                                  <img class="bd-placeholder-img card-img-top" style="width:380px; height:300px;" src="${data['items'][i]['url']}" alt="Card image">
+                                            </div>
+                                            <h2>${data['items'][i]['title']}</h2>
+                                            <p>${data['items'][i]['description']}</p>
+                                            <a href="/course/${data['items'][i]['_id']}" class="icon-link d-inline-flex align-items-center">
+                                              View Course
+                                              <svg class="bi" width="1em" height="1em"><use xlink:href="#chevron-right"></use></svg>
+                                            </a>
+                                        </div>
+                                    `
+                                }
+                            }
+                            $(`#course_div`).empty().append(body_div);
+                        }
+                    },
+                    error: function (error){
+                        console.log('something went wrong.');
+                    }
+                });
+            }
+
+        });
+        all_course();
+    </script>
 </html>
+
+
+
+
+
+
+
+

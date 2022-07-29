@@ -1,5 +1,5 @@
 import os
-
+import re
 import pymongo
 from datetime import datetime
 from bson.objectid import ObjectId
@@ -56,7 +56,7 @@ def insert_user(data):
         )
 
 
-def fetch_courses(sort=-1, filter='_id'):
+def fetch_courses(sort=1, filter='title'):
     db = client['courses']
     info = db['course']
     return list(info.find({}).sort(filter, sort))
@@ -65,7 +65,7 @@ def fetch_courses(sort=-1, filter='_id'):
 def insert_course(course_detail):
     db = client['courses']
     info = db['course']
-    course_detail['active'] = False
+    #course_detail['active'] = False
     course_id = str(info.insert_one(course_detail).inserted_id)
     return course_id
 
@@ -117,6 +117,19 @@ def video_info(video_id):
     db = client['courses']
     info = db['course_detail']
     return info.find_one({'_id': ObjectId(video_id)})
+
+
+def fetch_course_by_category(category):
+    db = client['courses']
+    info = db['course']
+    return list(info.find({'category': category, 'active': True}))
+
+
+def fetch_course_by_title(keyword):
+    rgx = re.compile(f'.*{keyword}.*', re.IGNORECASE)
+    db = client['courses']
+    info = db['course']
+    return list(info.find({'title': rgx, 'active': True}))
 ##############################
 
 

@@ -24,7 +24,9 @@ from app.models.query_builder import (
     user_active,
     fetch_user,
     fetch_active_courses,
-    video_info
+    video_info,
+    fetch_course_by_category,
+    fetch_course_by_title
 )
 
 from app.youtube_api import (
@@ -48,7 +50,7 @@ app.register_blueprint(google_login, url_prefix='/googlelogin')
 @api.route('/')
 def home():
     if session.get('user_id') or user_active(session.get('user_id')):
-        return render_template('dashboard.html', user_info=fetch_user(session.get('user_id')), courses=fetch_active_courses())
+        return render_template('dashboard.html', user_info=fetch_user(session.get('user_id')))
     else:
         session.clear()
     return redirect('/login')
@@ -163,11 +165,11 @@ def video_upload():
         if request.method == 'GET':
             return render_template('upload_video.html', user_info=fetch_user(session.get('user_id')), course_list=[{"id": i['_id'], "title": i['title']} for i in fetch_courses()])
         elif request.method == 'POST':
-            response_data = {
+            response_json = {
                 'status': 404,
                 'message': 'Something went wrong.'
             }
-            if not request.form['course'] or not request.form['title'] or not request.form['description'] or len(request.files.getlist('video_file')) == 0:
+            """if not request.form['course'] or not request.form['title'] or not request.form['description'] or len(request.files.getlist('video_file')) == 0:
                 response_data = {
                     'status': 404,
                     'message': 'Field is missing.'
@@ -208,7 +210,27 @@ def video_upload():
                     os.remove(f'static/video/{file_name}')
                     response_data['status'] = 200
                     response_data['message'] = 'File uploaded successfully.'
-                return jsonify(response_data)
+                return jsonify(response_data)"""
+            if not request.form['course'] or not request.form['title'] or not request.form['description'] or not request.form['file_name']:
+                response_json = {
+                    'status': 404,
+                    'message': 'Field is missing.'
+                }
+            else:
+                v = Video()
+                response_json['presigned_object'] = v.generate_pre_signed_url(
+                    f'{fetch_course(request.form["course"])["title"].replace("/", "").lower()}/{request.form["title"].replace("/", "")}.{request.form["file_name"].split(".")[-1]}')
+                video_info = {
+                    'title': request.form['title'],
+                    'description': request.form['description'],
+                    #  'keywords': request.form['keywords'],
+                    'video_path': f'{fetch_course(request.form["course"])["title"].replace("/", "").lower()}/{request.form["title"].replace("/", "")}.{request.form["file_name"].split(".")[-1]}',
+                    'active': True
+                }
+                insert_video(request.form['course'], video_info)
+                response_json['status'] = 200
+                response_json['message'] = 'ok'
+            response_data = jsonify(response_json)
     return response_data
 
 
@@ -220,10 +242,28 @@ def course_dashboard(course_id):
         response_data = redirect('/')
     else:
         response_data = render_template('course.html',
-                                        videos=course_video_user(course_id),
+                                        course=fetch_course(course_id),
                                         user_info=fetch_user(session.get('user_id'))
                         )
     return response_data
+
+@app.route('/course/video/<course_id>/')
+def get_video_list(course_id=None):
+    response_data = {
+        'status': 404,
+        'message': 'Something went wrong.',
+    }
+    if not session.get('user_id') or not user_active(session.get('user_id')):
+        response_data['message'] = 'unauthorized user'
+    else:
+        video_list = course_video_user(course_id)
+        for i in video_list:
+            i['_id'] = str(i['_id'])
+        response_data['status'] = 200
+        response_data['message'] = 'ok'
+        response_data['items'] = video_list
+    return jsonify(response_data)
+
 
 
 @app.route('/course/<course_id>/<video_id>', methods=['GET'])
@@ -244,25 +284,68 @@ def get_video_url(course_id=None, video_id=None):
     return response_data
 
 
-@app.route('/video_upload', methods=['POST'])
-def get_signed_url():
+# @app.route('/video_upload', methods=['POST'])
+# def get_signed_url():
+#     response_data = {
+#         'status': 404,
+#         'message': 'Something went wrong.'
+#     }
+#     if not session.get('user_id') or not user_active(session.get('user_id')) or not check_access(session.get('user_id'), 'staff'):
+#         response_data['message'] = 'unauthorized user.'
+#     else:
+#         v = Video()
+#         response_data['presigned_object'] = v.generate_pre_signed_url(f'{fetch_course(request.form["course"])["title"].replace("/", "").lower()}/{request.form["title"].replace("/", "")}.{request.form["file_name"].split(".")[-1]}')
+#         video_info = {
+#             'title': request.form['title'],
+#             'description': request.form['description'],
+#             #  'keywords': request.form['keywords'],
+#             'video_path': f'{fetch_course(request.form["course"])["title"].replace("/", "").lower()}/{request.form["title"].replace("/", "")}.{request.form["file_name"].split(".")[-1]}',
+#             'active': True
+#         }
+#         insert_video(request.form['course'], video_info)
+#         response_data['status'] = 200
+#         response_data['message'] = 'ok'
+#         return jsonify(response_data)
+
+
+@app.route('/category/<category_select>', methods=['GET'])
+def category_search(category_select=None):
     response_data = {
         'status': 404,
-        'message': 'Something went wrong.'
+        'message': 'Something went wrong.',
     }
-    if not session.get('user_id') or not user_active(session.get('user_id')) or not check_access(session.get('user_id'), 'staff'):
-        response_data['message'] = 'unauthorized user.'
-    else:
-        v = Video()
-        response_data['presigned_object'] = v.generate_pre_signed_url(f'{fetch_course(request.form["course"])["title"].replace("/", "").lower()}/{request.form["title"].replace("/", "")}.{request.form["file_name"].split(".")[-1]}')
-        video_info = {
-            'title': request.form['title'],
-            'description': request.form['description'],
-            #  'keywords': request.form['keywords'],
-            'video_path': f'{fetch_course(request.form["course"])["title"].replace("/", "").lower()}/{request.form["title"].replace("/", "")}.{request.form["file_name"].split(".")[-1]}',
-            'active': True
-        }
-        insert_video(request.form['course'], video_info)
-        response_data['status'] = 200
-        response_data['message'] = 'ok'
-        return jsonify(response_data)
+    response_data['items'] = fetch_course_by_category(category_select)
+    for i in response_data['items']:
+        i['_id'] = str(i['_id'])
+    response_data['status'] = 200
+    response_data['message'] = 'ok'
+    return jsonify(response_data)
+
+
+
+@app.route('/search/<search_keyword>', methods=['GET'])
+def title_search(search_keyword=None):
+    response_data = {
+        'status': 404,
+        'message': 'Something went wrong.',
+    }
+    response_data['items'] = fetch_course_by_title(search_keyword)
+    for i in response_data['items']:
+        i['_id'] = str(i['_id'])
+    response_data['status'] = 200
+    response_data['message'] = 'ok'
+    return jsonify(response_data)
+
+
+@app.route('/active_course')
+def active_course():
+    response_data = {
+        'status': 404,
+        'message': 'Something went wrong.',
+    }
+    response_data['items'] = fetch_active_courses()
+    for i in response_data['items']:
+        i['_id'] = str(i['_id'])
+    response_data['status'] = 200
+    response_data['message'] = 'ok'
+    return jsonify(response_data)
