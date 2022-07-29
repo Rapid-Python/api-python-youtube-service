@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Manage</title>
+    </head>
+    <body>
+        {% include '/header.html' %}
+        <div class="container mt-3">
+            <h2>Admin Dashboard</h2>
+            <h4>{{manage_type|capitalize}}</h4>
+            <table class="table">
+                <thead>
+                    {% if manage_type == 'user' %}
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Access Right</th>
+                        </tr>
+                    {% elif manage_type == 'course' %}
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Icon url</th>
+                            <th colspan="2">Action</th>
+                        </tr>
+                    {% endif %}
+                </thead>
+                <tbody id="table_body">
+                    {% if data_list| length == 0%}
+                        <tr>
+                            <td colspan="5" align="center">No data available</td>
+                        </tr>
+                    {% else %}
+                        {% for data in data_list %}
+                            {% if manage_type == 'user' %}
+                                <tr>
+                                    <td>{{data.user_id}}</td>
+                                    <td>{{data.user_name}}</td>
+                                    <td>{{data.email}}</td>
+                                    <td>{{data.access_type}}</td>
+                                </tr>
+                            {% elif manage_type == 'course' %}
+                                <tr id="tr_{{data._id}}">
+                                    <td>{{data._id}}</td>
+                                    <td>{{data.title}}</td>
+                                    <td>{{data.description}}</td>
+                                    <td title="{{data.url}}" style="white-space:nowrap;">{{data.url|truncate(20, True, '...')}}</td>
+                                    <td><a class="edit_course" style="cursor: pointer;"data-id="{{loop.index}}" data-course_id="{{data._id}}" data-title="{{data.title}}" data-description="{{data.description}}" data-url="{{data.url}}"><i class="fas fa-pen"></i></a></td>
+                                    <td><a class="delete_course" style="cursor: pointer; color:red;" data-id="{{loop.index}}" data-course_id="{{data._id}}"><i class="fas fa-trash"></i></a></td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+            {% if manage_type == 'course' %}
+                <div style="text-align:center;" id="add_new_course"><button >Add new course </button></div>
+            {% endif %}
+        </div>
+    </body>
+    <script>
+        $(document).on("click", "#add_new_course", function (event) {
+            var body_div = `
+                <tr id="tr_${$("#table_body tr").length + 1}">
+                    <td>Auto generate</td>
+                        <td><input type="text" id="title_${$("#table_body tr").length + 1}"></td>
+                        <td><textarea style="height: 30px;" id="description_${$("#table_body tr").length + 1}"></textarea></td>
+                        <td><input type="url" id="url_${$("#table_body tr").length + 1}"></td>
+                        <td><button data-id="${$("#table_body tr").length + 1}" class="save_course">Save</button></td>
+                </tr>
+            `
+            $('#table_body').append(body_div);
+        });
+
+        $(document).on("click", ".save_course", function (event) {
+            var id_number = $(this).data("id");
+            var form_data = new FormData();
+            form_data.append("title", $(`#title_${id_number}`).val());
+            form_data.append("description", $(`#description_${id_number}`).val());
+            form_data.append("url", $(`#url_${id_number}`).val());
+            $.ajax({
+                url: '/manage/course' , // point to server-side URL
+                cache: false,
+                contentType: false,
+                processData: false,
+                data:form_data,
+                type: 'POST',
+                success: function (data) {
+                    var body_div = `
+                        <td>${data['course_detail']['id']}</td>
+                        <td>${data['course_detail']['title']}</td>
+                        <td>${data['course_detail']['description']}</td>
+                        <td title="${data['course_detail']['url']}">${data['course_detail']['url'].slice(0, 20)}</td>
+                        <td><a class="edit_course" style="cursor: pointer;" data-id="${id_number}" data-course_id="${data['course_detail']['id']}" data-title="${data['course_detail']['title']}" data-description="${data['course_detail']['description']}" data-url="${data['course_detail']['url']}""><i class="fas fa-pen"></i></a></td>
+                        <td><a class="delete_course" style="cursor: pointer; color:red;" data-course_id="${data['course_detail']['id']}"><i class="fas fa-trash"></i></a></td>
+                    `
+                    $(`#tr_${id_number}`).empty().append(body_div);
+                    $(`#tr_${id_number}`).attr('id', `tr_${data['course_detail']['id']}`);
+                },
+                error: function (data){
+                    alert('Something went wrong.');
+                },
+            });
+        });
+
+        $(document).on("click", ".edit_course", function (event) {
+            var body_div = `
+                <td>${$(this).data("course_id")}</td>
+                <td><input type="text" id="title_${$(this).data("course_id")}" value="${$(this).data("title")}"></td>
+                <td><textarea style="height: 30px;" id="description_${$(this).data("course_id")}">${$(this).data("description")}</textarea></td>
+                <td><input type="url" id="url_${$(this).data("course_id")}" value="${$(this).data("url")}"></td>
+                <td><button data-course_id="${$(this).data("course_id")}" data-id=${$(this).data("id")} class="update_course">Update</button></td>
+            `
+            $(`#tr_${$(this).data("course_id")}`).empty().append(body_div);
+        });
+
+
+        $(document).on("click", ".update_course", function (event) {
+            var course_id = $(this).data("course_id");
+            var title = $(`#title_${course_id}`).val();
+            var description = $(`#description_${course_id}`).val();
+            var url = $(`#url_${course_id}`).val();
+            var body_div = `
+                <td>${course_id}</td>
+                <td>${title}</td>
+                <td>${description}</td>
+                <td title="${url}">${url.slice(0, 20)}</td>
+                <td><a class="edit_course" style="cursor: pointer;" data-id="${$(this).data("id")}" data-course_id="${course_id}" data-title="${title}" data-description="${description}" data-url="${url}""><i class="fas fa-pen"></i></a></td>
+                <td><a class="delete_course" style="cursor: pointer; color:red;" data-id="${course_id}"><i class="fas fa-trash"></i></a></td>
+            `
+            $(`#tr_${course_id}`).empty().append(body_div);
+
+            var form_data = new FormData();
+            form_data.append("title", title);
+            form_data.append("description", description);
+            form_data.append("url", url);
+            $.ajax({
+                url: `/manage/course/${course_id}` , // point to server-side URL
+                cache: false,
+                contentType: false,
+                processData: false,
+                data:form_data,
+                type: 'PUT',
+                success: function (data) {
+                    console.table(data);
+                    alert('ok');
+                },
+                error: function (data){
+                    alert('Something went wrong.');
+                },
+            });
+        });
+
+        $(document).on("click", ".delete_course", function (event) {
+            var flag = confirm("Are you sure?");
+            if (flag){
+                var course_id = $(this).data("course_id");
+                $(`#tr_${course_id}`).remove();
+                var form_data = new FormData();
+                $.ajax({
+                    url: `/manage/course/${course_id}` , // point to server-side URL
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    data:form_data,
+                    type: 'DELETE',
+                    success: function (data) {
+                        console.table(data);
+                        alert('ok');
+                    },
+                    error: function (data){
+                        alert('Something went wrong.');
+                    },
+                });
+            }
+        });
+
+    </script>
+</html>

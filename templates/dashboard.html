@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <title>Dashboard</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Quicksand:wght@400;600;700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.minindex.css') }}">
+    </head>
+    <body id="body">
+        {% include '/header.html' %}
+            <div class="container mt-3">
+                <h2>Courses</h2>
+                <br>
+                {% if courses|length == 0%}
+                    <h4>No course available</h4>
+                {% else %}
+                    {% for course in courses %}
+                        <div class="card" style="width:400px">
+                            <img class="card-img-top" src="{{course.url}}" alt="Card image" style="width:400px  ; height:300px;">
+                            <div class="card-body">
+                                <h4 class="card-title">{{course.title}}</h4>
+                                <p class="card-text">{{course.description}}</p>
+                                <a href="/course/{{course._id}}" class="btn btn-primary">View Course</a>
+                            </div>
+                          </div>
+                        <br>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+
+<!--                                        -->
+<!--                                        &lt;!&ndash; 1. The <iframe> (and video player) will replace this <div> tag. &ndash;&gt;-->
+<!--&lt;!&ndash;                                        <div class="formContent" id="player">&ndash;&gt;-->
+<!--                                    </div>-->
+<!--                                    </div>-->
+<!--                                    </div>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            <div class="col-md-4">-->
+<!--                                    <div class="panel box">-->
+<!--&lt;!&ndash;                                        <div class="row spinner" id="right_panel_video_playlist">&ndash;&gt;-->
+<!--                                            <div>-->
+<!--                                                <div>-->
+
+<!--                                                    <h4>Video Playlist</h4>-->
+<!--                                                    {% if course_detail|length == 0 %}-->
+<!--                                                        <div>-->
+<!--                                                            <h5> No video available</h5>-->
+<!--                                                        </div>-->
+<!--                                                    {% endif %}-->
+<!--                                                    {% for video in course_detail %}-->
+<!--                                                    <div>-->
+<!--                                                        <h6 style="cursor: pointer;" class="change_frame_video" data-video_id="{{video.video_id}}">{{video.title}}</h6>-->
+<!--                                                    </div>-->
+<!--                                                    {% endfor %}-->
+<!--                                                </div>-->
+<!--&lt;!&ndash;                                            &lt;!&ndash; loader &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <div class="rect1"></div>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <div class="rect2"></div>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <div class="rect3"></div>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <div class="rect4"></div>&ndash;&gt;-->
+<!--&lt;!&ndash;                                            <div class="rect5"></div>&ndash;&gt;-->
+<!--                                        </div>-->
+
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                        </div>-->
+<!--                  </div>-->
+<!--            </div>-->
+<!--        </div>-->
+    </body>
+<!--    <script>-->
+<!--        $(document).on("click",".change_frame_video",function(event) {-->
+<!--          //  video_url = `https://www.youtube.com/embed/${this.data("video_id")}`;-->
+<!--            var iframe_body = `-->
+<!--                <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${$(this).data("video_id")}?modestbranding=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`-->
+<!--            $('#iframe_div').empty().append(iframe_body);-->
+<!--        });-->
+<!--    </script>-->
+
+</html>

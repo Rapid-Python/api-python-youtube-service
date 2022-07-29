@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Course</title>
+    </head>
+    <body>
+        {% include '/header.html' %}
+        {% if videos|length == 0 %}
+            <h3>No video available</h3>
+        {% else %}
+            <div class="container mt-5">
+                <div class="row">
+                    <div class="col-md-8" id="iframe_div">
+                        <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/{{videos[0].video_id}}?modestbranding=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                    <div class="col-md-4">
+                        {% for video in videos %}
+                            <h6 style="cursor: pointer;" class="change_frame_video" data-video_id="{{video.video_id}}">{{video.title}}</h6>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </body>
+    <script>
+        $(document).on("click",".change_frame_video",function(event) {
+            var iframe_body = `
+                <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${$(this).data("video_id")}?modestbranding=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+            $('#iframe_div').empty().append(iframe_body);
+        });
+    </script>
+</html>
