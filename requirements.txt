@@ -1,0 +1,8 @@
+flask
+oauth2client
+google-auth-oauthlib
+google-api-python-client
+pymongo
+python-dotenv==0.20.0
+flask_dance
+boto3==1.24.37

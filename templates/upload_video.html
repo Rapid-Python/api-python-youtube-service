@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Upload a Video</title>
+    </head>
+    <body style="margin: 0 10px;">
+        {% include '/header.html' %}
+        <h3>Upload video dashboard</h3>
+        <form onsubmit="false">
+            <div class="mb-3 mt-3">
+                <label for="course" class="form-label">Course Name:</label>
+                </br>
+                <select id="course">
+                    <option>Select Course</option>
+                    {% for course in course_list %}
+                        <option value="{{course.id}}">{{course.title}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="title" class="form-label">Title:</label>
+                <input type="text" class="form-control" id="title" placeholder="What is Blockchain?" name="title" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description:</label>
+                </br>
+                <textarea id="description" name="description" placeholder="Blockchain is a new world." required></textarea>
+            </div>
+    <!--        <div class="mb-3">-->
+    <!--            <label for="Keywords" class="form-label">Keywords:</label>-->
+    <!--            <input type="text" id="keywords" name="keywords" placeholder="Blockchain, Solidity, Ethereum">-->
+    <!--        </div>-->
+            <div class="mb-3">
+                <label for="file" class="form-label">Select a file:</label>
+                <input type="file" id="file" name="file" required>
+            </div>
+
+            <input type="button" id="video_upload" value="Upload" class="btn btn-primary">
+        </form>
+<!--&lt;!&ndash;                Category&ndash;&gt;-->
+<!--&lt;!&ndash;                <input type="number" id="category">&ndash;&gt;-->
+
+<!--&lt;!&ndash;                Visibility&ndash;&gt;-->
+<!--&lt;!&ndash;                <input type="text" id="visibility">&ndash;&gt;-->
+
+<!--                <br>-->
+
+<!--                <button id="upload_video"> Upload Video</button>-->
+<!--            </div>-->
+<!--        </div>-->
+
+    </body>
+
+    <script>
+        $(document).on("click", "#video_upload", function (event) {
+            if($('#course').val() == 'Select Course' || $('#title').val() == '' || $('#description').val() == '' || document.getElementById('file').files.length == 0){
+                alert('Please fill out all fields');
+                return false;
+            }
+            var form_data = new FormData();
+            form_data.append("course", $('#course').val());
+            form_data.append("title", $('#title').val());
+            form_data.append("description", $('#description').val());
+            form_data.append("file_name", document.getElementById('file').files[0].name);
+            $.ajax({
+                url: '/video_upload' , // point to server-side URL
+                cache: false,
+                contentType: false,
+                processData: false,
+                data:form_data,
+                type: 'POST',
+                success: function (data) {
+                    console.table(data);
+                    console.log(data);
+                    if(data['status'] == 200){
+                        var url_s3 = data['presigned_object']['url']
+                        var fields = data['presigned_object']['fields']
+
+                        var data = {
+                            bucket: "rapid-video-service",
+                            ...fields,
+                            file: file.files[0],
+                        };
+
+                        var formData = new FormData();
+                            for (var name in data) {
+                            formData.append(name, data[name]);
+                        }
+
+                        $.ajax({
+                            url: url_s3 , // point to server-side URL
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            data:formData,
+                            type: 'POST',
+                            success: function (data) {
+                                console.table(data);
+                                console.log(data);
+                                alert('ok');
+                            },
+                            error: function (data){
+                                alert('Something went wrong.');
+                            },
+                        });
+
+                    }
+
+                },
+                error: function (data){
+                    alert('Something went wrong.');
+                },
+            });
+        });
+
+
+      /*  $(document).on("click", "#video_upload", function (event) {
+            var form_data = new FormData();
+            form_data.append("course", $('#course').val());
+            form_data.append("title", $('#title').val());
+            form_data.append("description", $('#description').val());
+        //    form_data.append("keywords", $('#keywords').val());
+            //form_data.append("category", $('#category').val());
+           // form_data.append("visibility", $('#visibility').val());
+            form_data.append("video_file", document.getElementById('video_file').files[0]);
+            $.ajax({
+                url: '/video_upload' , // point to server-side URL
+                cache: false,
+                contentType: false,
+                processData: false,
+                data:form_data,
+                type: 'POST',
+                success: function (data) {
+                    alert(data['message']);
+
+                },
+                error: function (data){
+                    alert('Something went wrong.');
+                },
+            });
+       });*/
+    </script>
+</html>
